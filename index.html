@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Orbit</title>
+  <meta name="description" content="Orbit — a chat app UI study with matching motion details, built with plain HTML, CSS and JavaScript.">
+  <meta name="theme-color" content="#f9f8f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141413" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    // Apply a saved theme before first paint to avoid a flash.
+    try {
+      var t = localStorage.getItem('orbit.theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+    } catch (e) { /* storage unavailable */ }
+  </script>
+</head>
+<body>
+  <div class="app" id="app" data-mode="home">
+
+    <!-- Fixed top-left controls (stay visible when the sidebar is collapsed) -->
+    <div class="corner">
+      <button class="icon-btn" id="sidebarToggle" type="button" aria-label="Toggle sidebar" data-tip="Toggle sidebar"><i data-icon="sidebar"></i></button>
+      <button class="icon-btn" id="searchBtn" type="button" aria-label="Search" data-tip="Search"><i data-icon="search"></i></button>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" aria-label="Sidebar">
+      <div class="sidebar-inner">
+        <div class="sb-scroll">
+          <div class="sb-newchat-wrap">
+            <button class="new-chat" id="newChatBtn" type="button">
+              <span class="nc-icon"><i data-icon="plus"></i></span>
+              <span class="nc-label">New chat</span>
+              <kbd class="nc-kbd" id="newChatKbd">⌘ J</kbd>
+            </button>
+          </div>
+
+          <nav class="sb-list sb-nav" aria-label="Primary">
+            <button class="sb-item" type="button" data-nav="imagine"><i data-icon="image"></i><span class="label">Imagine</span><span class="badge">New</span></button>
+            <button class="sb-item" type="button" data-nav="library"><i data-icon="library"></i><span class="label">Library</span></button>
+          </nav>
+
+          <section class="sb-section" aria-label="Bots">
+            <div class="sb-label-row">
+              <span class="sb-label">Bots</span>
+              <span class="sb-label-actions">
+                <button class="mini-btn" id="groupBotsBtn" type="button" aria-label="Group by section" data-tip="Group by section"><i data-icon="list"></i></button>
+                <button class="mini-btn" id="newBotBtn" type="button" aria-label="New bot" data-tip="New bot"><i data-icon="plus"></i></button>
+              </span>
+            </div>
+            <div class="sb-list" id="botList"></div>
+          </section>
+
+          <section class="sb-section" aria-label="Projects">
+            <div class="sb-label-row"><span class="sb-label">Projects</span></div>
+            <div class="sb-list" id="projectList"></div>
+          </section>
+
+          <section class="sb-section" aria-label="Chats">
+            <div class="sb-label-row"><span class="sb-label">Chats</span></div>
+            <div class="sb-list" id="chatList"></div>
+          </section>
+        </div>
+
+        <div class="sb-footer">
+          <button class="account" id="accountBtn" type="button" aria-haspopup="menu" aria-expanded="false">
+            <span class="avatar" aria-hidden="true">G</span>
+            <span class="account-name">Guest</span>
+          </button>
+          <button class="round-btn" id="appsBtn" type="button" aria-label="Connect apps" data-tip="Connect apps"><i data-icon="apps"></i></button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="scrim" id="scrim"></div>
+
+    <!-- Main -->
+    <main class="main" id="main">
+      <header class="topbar">
+        <div class="top-actions">
+          <button class="pill" id="botPill" type="button" aria-label="Download Orbit Bot"><i data-icon="clock"></i><span class="lbl">Orbit Bot</span></button>
+          <button class="pill" id="privateBtn" type="button" aria-pressed="false" aria-label="Switch to Private Chat"><i data-icon="dashed"></i><span class="lbl">Private</span></button>
+        </div>
+        <button class="icon-btn" id="panelToggle" type="button" aria-label="Toggle side panel" data-tip="Toggle panel"><i data-icon="panelRight"></i></button>
+      </header>
+
+      <div class="stage" id="stage">
+        <div class="home-top">
+          <div class="col">
+            <h1 class="greeting" id="greeting"></h1>
+          </div>
+        </div>
+
+        <div class="thread" id="thread">
+          <div class="col thread-inner" id="threadInner"></div>
+        </div>
+
+        <div class="library" id="library">
+          <div class="col library-inner">
+            <h2 class="page-title">Library</h2>
+            <div class="lib-tabs" role="tablist">
+              <button class="lib-tab active" type="button" role="tab" aria-selected="true">All</button>
+              <button class="lib-tab" type="button" role="tab" aria-selected="false">Images</button>
+              <button class="lib-tab" type="button" role="tab" aria-selected="false">Videos</button>
+              <button class="lib-tab" type="button" role="tab" aria-selected="false">Files</button>
+            </div>
+            <div class="lib-empty">
+              <i data-icon="library"></i>
+              <strong>Nothing here yet</strong>
+              <span>Images, videos and files you create will show up here.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="followups col" id="followups"></div>
+
+        <div class="composer-row" id="composerRow">
+          <div class="col">
+            <form class="composer" id="composer" autocomplete="off">
+              <button class="c-btn c-plus" id="plusBtn" type="button" aria-label="Add files, skills, and connectors" aria-haspopup="menu" aria-expanded="false" data-tip="Attach"><i data-icon="plus"></i></button>
+              <div class="c-input">
+                <textarea id="input" rows="1" placeholder="Ask, imagine, build anything..." aria-label="Message" spellcheck="true"></textarea>
+              </div>
+              <div class="c-right">
+                <button class="model-btn" id="modelBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Model: Fast"><span id="modelLabel">Fast</span><i data-icon="chevronDown"></i></button>
+                <button class="c-btn c-mic" id="micBtn" type="button" aria-label="Dictate" aria-pressed="false" data-tip="Dictate"><i data-icon="mic"></i></button>
+                <button class="c-btn c-action" id="actionBtn" type="button" aria-label="Voice mode"><i data-icon="wave"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="below" id="below">
+          <div class="col">
+            <div class="suggestions" id="suggestions"></div>
+            <p class="private-note"><i data-icon="dashed"></i>This chat won't be saved to your history or used to train models.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right panel -->
+    <aside class="panel" id="panel" aria-label="Side panel">
+      <div class="panel-inner">
+        <div class="panel-head">
+          <span>Workspace</span>
+          <button class="icon-btn" id="panelClose" type="button" aria-label="Close panel"><i data-icon="x"></i></button>
+        </div>
+        <div class="panel-empty">
+          <i data-icon="doc"></i>
+          <p>Files, code and artifacts from this chat will appear here.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Search / command palette -->
+  <div class="palette-layer" id="palette" hidden>
+    <div class="palette" role="dialog" aria-modal="true" aria-label="Search">
+      <div class="pal-input-row">
+        <input class="pal-input" id="palInput" type="text" placeholder="Search or type an action" autocomplete="off" spellcheck="false" aria-label="Search or type an action">
+        <span class="pal-hint">Next section <kbd class="kbd">Tab</kbd></span>
+      </div>
+      <div class="pal-tabs" id="palTabs" role="tablist"></div>
+      <div class="pal-list" id="palList" role="listbox"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-layer" id="settings" hidden>
+    <div class="settings" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+      <h2 class="sr-only">Settings</h2>
+      <aside class="st-nav">
+        <label class="st-search"><i data-icon="search"></i><input id="stSearch" type="text" placeholder="Search" autocomplete="off" spellcheck="false" aria-label="Search settings"></label>
+        <nav class="st-tabs" id="stTabs" aria-label="Settings sections"></nav>
+      </aside>
+      <section class="st-main" id="stMain">
+        <div class="st-head" id="stHead"><h1 class="st-title" id="stTitle">Account</h1></div>
+        <div class="st-body" id="stBody"></div>
+      </section>
+      <button class="icon-btn st-close" id="stClose" type="button" aria-label="Close settings"><i data-icon="x"></i></button>
+    </div>
+  </div>
+
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <input type="file" id="fileInput" hidden>
+
+  <script src="app.js"></script>
+</body>
+</html>
